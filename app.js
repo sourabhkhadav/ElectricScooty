@@ -477,7 +477,7 @@ window.CartSync = {
     }
 };
 
-// Initialize cart
+// Initialize cart - Updated with real-time sync
 const cart = new ShoppingCart();
 
 // Ensure cart badge is updated when page loads
