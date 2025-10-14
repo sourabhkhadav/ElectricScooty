@@ -248,41 +248,7 @@ function addToCart() {
   const quantity = parseInt(document.getElementById('quantity').value) || 1;
   
   if (product) {
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const existingItem = cart.find(item => item.name === product.name);
-    
-    if (existingItem) {
-      existingItem.quantity += quantity;
-    } else {
-      cart.push({
-        id: Date.now() + Math.random(),
-        name: product.name,
-        price: product.price,
-        image: product.image,
-        quantity: quantity
-      });
-    }
-    
-    localStorage.setItem('cart', JSON.stringify(cart));
-    
-    // Force cart reload by reinitializing
-    if (window.ShoppingCart) {
-      window.cart = new window.ShoppingCart();
-    }
-    
-    // Update badge
-    const badge = document.querySelector('.cart-logo .badge');
-    if (badge) {
-      badge.textContent = cart.length;
-      badge.style.display = 'inline-block';
-    }
-    
-    // Show notification using cart system if available
-    if (window.cart && window.cart.showNotification) {
-      window.cart.showNotification(`Added ${quantity} x ${product.name} to cart!`);
-    } else {
-      alert(`Added ${quantity} x ${product.name} to cart!`);
-    }
+    window.CartSync.addItem(product, quantity);
   }
 }
 

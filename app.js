@@ -230,6 +230,9 @@ class ShoppingCart {
     }
 
     showCart() {
+        // Reload cart from localStorage before showing
+        this.items = JSON.parse(localStorage.getItem('cart')) || [];
+        
         let overlay = document.getElementById('cartOverlay');
         if (!overlay) {
             overlay = document.createElement('div');
@@ -409,6 +412,71 @@ class ShoppingCart {
     }
 }
 
+// Cart synchronization utility for template pages
+window.CartSync = {
+    // Update cart display across all pages
+    updateDisplay() {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const badges = document.querySelectorAll('.cart-logo .badge');
+        
+        badges.forEach(badge => {
+            badge.textContent = cart.length;
+            badge.style.display = cart.length > 0 ? 'inline-block' : 'none';
+        });
+    },
+    
+    // Add item and sync display
+    addItem(product, quantity = 1) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const existingItem = cart.find(item => item.name === product.name);
+        
+        if (existingItem) {
+            existingItem.quantity += quantity;
+        } else {
+            cart.push({
+                id: Date.now() + Math.random(),
+                name: product.name,
+                price: product.price,
+                image: product.image,
+                quantity: quantity
+            });
+        }
+        
+        localStorage.setItem('cart', JSON.stringify(cart));
+        this.updateDisplay();
+        this.showNotification(`Added ${quantity} x ${product.name} to cart!`);
+        
+        // Update main cart instance if available
+        if (window.cart && window.cart.items) {
+            window.cart.items = cart;
+            window.cart.updateCartDisplay();
+        }
+    },
+    
+    // Show notification
+    showNotification(message) {
+        const existing = document.querySelector('.cart-notification');
+        if (existing) existing.remove();
+        
+        const notification = document.createElement('div');
+        notification.className = 'cart-notification';
+        notification.innerHTML = `
+            <div class="alert alert-success position-fixed" 
+                 style="bottom: 50px; left: 50%; transform: translateX(-50%); z-index: 9999; min-width: 300px; text-align: center;">
+                ${message}
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 1000);
+    }
+};
+
 // Initialize cart
 const cart = new ShoppingCart();
 
@@ -417,6 +485,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Small delay to ensure DOM is fully loaded
     setTimeout(() => {
         cart.updateCartDisplay();
+        window.CartSync.updateDisplay();
     }, 100);
 });
 
